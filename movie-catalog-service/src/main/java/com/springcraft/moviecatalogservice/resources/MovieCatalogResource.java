@@ -19,7 +19,7 @@ public class MovieCatalogResource {
     @RequestMapping("/{userId}")
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId) {
         return Collections.singletonList(
-                new CatalogItem("Catch me if you can", "Real", 4)
+                new CatalogItem("Catch me if you can", "Biopic", 4)
         );
     }
 }

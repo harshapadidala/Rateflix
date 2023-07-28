@@ -3,6 +3,8 @@ package com.springcraft.moviecatalogservice.resources;
 import com.springcraft.moviecatalogservice.models.CatalogItem;
 import com.springcraft.moviecatalogservice.models.Movie;
 import com.springcraft.moviecatalogservice.models.Rating;
+import com.springcraft.moviecatalogservice.models.UserRating;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,30 +24,29 @@ public class MovieCatalogResource {
     private RestTemplate restTemplate;
 
     @Autowired
-    private WebClient.Builder webClientBuilder;
+    private WebClient.Builder webClientBuilder; 
 
     @RequestMapping("/{userId}")
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId) {
-        //get all rated Movie IDs
-        List<Rating> ratings = Arrays.asList(
-                new Rating("123", 4),
-                new Rating("268", 5)
-        );
+        //call ratingsdata service and get ratings of movies user has given
+        UserRating userRating = restTemplate.getForObject("http://localhost:8083/ratingsdata/users/" + userId, UserRating.class);
 
         //for each movie ID call movie info service and get details
-        return ratings.stream()
+        return userRating.getRatingList()
+                .stream()
                 .map(rating -> {
-                        //Movie movie = restTemplate.getForObject("http://localhost:8082/movies/" + rating.getMovieId(), Movie.class);
-                     
-                        Movie movie = webClientBuilder.build()
-                                .get()
-                                .uri("http://localhost:8082/movies/" + rating.getMovieId())
-                                .retrieve()
-                                .bodyToMono(Movie.class)
-                                .block();
-
+                        Movie movie = restTemplate.getForObject("http://localhost:8082/movies/" + rating.getMovieId(), Movie.class);
                         return new CatalogItem(movie.getName(), "Description", rating.getRating());
                 })
                 .collect(Collectors.toList());
     }
+
+    /*
+            Movie movie = webClientBuilder.build()
+                    .get()
+                    .uri("http://localhost:8082/movies/" + rating.getMovieId())
+                    .retrieve()
+                    .bodyToMono(Movie.class)
+                    .block();
+     */
 }

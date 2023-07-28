@@ -24,18 +24,18 @@ public class MovieCatalogResource {
     private RestTemplate restTemplate;
 
     @Autowired
-    private WebClient.Builder webClientBuilder; 
+    private WebClient.Builder webClientBuilder;
 
     @RequestMapping("/{userId}")
     public List<CatalogItem> getCatalog(@PathVariable("userId") String userId) {
         //call ratingsdata service and get ratings of movies user has given
-        UserRating userRating = restTemplate.getForObject("http://localhost:8083/ratingsdata/users/" + userId, UserRating.class);
+        UserRating userRating = restTemplate.getForObject("http://ratings-data-service/ratingsdata/users/" + userId, UserRating.class);
 
         //for each movie ID call movie info service and get details
         return userRating.getRatingList()
                 .stream()
                 .map(rating -> {
-                        Movie movie = restTemplate.getForObject("http://localhost:8082/movies/" + rating.getMovieId(), Movie.class);
+                        Movie movie = restTemplate.getForObject("http://movie-info-service/movies/" + rating.getMovieId(), Movie.class);
                         return new CatalogItem(movie.getName(), "Description", rating.getRating());
                 })
                 .collect(Collectors.toList());
